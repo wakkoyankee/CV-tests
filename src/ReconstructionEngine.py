@@ -1,11 +1,10 @@
 import open3d as o3d
 import Trajectory as tj
 import numpy as np
-from open3d.pipelines import integration
 
 VOXEL_LENGTH = 4.0 / 512.0
 SDF_TRUNC = 0.04
-COLOR_TYPE = integration.TSDFVolumeColorType.RGB8
+COLOR_TYPE = o3d.pipelines.integration.TSDFVolumeColorType.RGB8
 
 class ReconstructionEngine:
     
@@ -17,7 +16,7 @@ class ReconstructionEngine:
     def reconstruct(self,rgbds, camera_poses):
         
         # Prepare TSDF volumne function
-        volume = integration.ScalableTSDFVolume(
+        volume = o3d.pipelines.integration.ScalableTSDFVolume(
             voxel_length=self.voxel_length,
             sdf_trunc=self.sdf_trunc,
             color_type=self.color_type)
@@ -33,6 +32,23 @@ class ReconstructionEngine:
             
         return volume
     
+    def reconstructlive(self, rgbds, cameras):
+        # Prepare TSDF volumne function
+        volume = o3d.pipelines.integration.ScalableTSDFVolume(
+            voxel_length=self.voxel_length,
+            sdf_trunc=self.sdf_trunc,
+            color_type=self.color_type)
+
+        # Read RGBDs and camera poses
+        for i in range(len(rgbds)):
+            print("Integrate {:d}-th image into the volume.".format(i))      
+            volume.integrate(
+                rgbds[i],
+                cameras[i].intrinsic,
+                cameras[i].extrinsic)
+            
+        return volume
+    
 
     def reconstruct2mesh(self,rgbds, camera_poses):
         #Get volume
@@ -44,5 +60,11 @@ class ReconstructionEngine:
     def reconstruct2pcd(self,rgbds, camera_poses):
         #Get volume
         volume = self.reconstruct(rgbds, camera_poses)
+        pcd = volume.extract_point_cloud()
+        return pcd
+    
+    def reconstruct2pcdlive(self,rgbds, cameras):
+        #Get volume
+        volume = self.reconstructlive(rgbds, cameras)
         pcd = volume.extract_point_cloud()
         return pcd

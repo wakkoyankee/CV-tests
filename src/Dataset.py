@@ -3,7 +3,7 @@ from ReconstructionEngine import ReconstructionEngine
 import Trajectory as tj
 import os
 
-def create_orignal_scene():
+def create_orignal_scene(path, ismesh):
     #Get dataset
     dataset = o3d.data.RedwoodIndoorLivingRoom1()
 
@@ -23,14 +23,13 @@ def create_orignal_scene():
     camera_poses = tj.read_trajectory(trajectory_path)
     
     reconstruction = ReconstructionEngine()
-    mesh = reconstruction.reconstruct2mesh(im_rgbds, camera_poses)
-    o3d.io.write_triangle_mesh("Data/output_mesh.ply", mesh)
+    if ismesh:
+        mesh = reconstruction.reconstruct2mesh(im_rgbds, camera_poses)
+        o3d.io.write_triangle_mesh(path, mesh)
+    else:
+        pcd = reconstruction.reconstruct2pcd(im_rgbds, camera_poses)
+        o3d.io.write_triangle_mesh(path, mesh)
 
-    
-    
-def load_original_scene():
-    file_path = os.path.join("data","scene1.ply")
-    return o3d.io.read_triangle_mesh(file_path)
 
     
     
